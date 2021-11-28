@@ -1,11 +1,9 @@
-from typing import ByteString, Dict, List
+from typing import ByteString, Dict, List, Match
 import random
 import math
 
-# Todo: create some simple test data, run tests
 
-
-def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[str, float], eps: float):
+def motifEMOOPS(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]):
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     z = [[0 for x in range(seqLens[y]-k)] for y in range(len(sequences))]
     numM = [0 for x in sequences]
@@ -20,6 +18,7 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[str, float], eps:
                 # Update count in each position for PWM
                 for x in range(k):
                     pwmCounts[x][seq[j+x]] += 1
+                break
 
     # Get the average sequence length and the average number of randomly assigned 'motifs' per sequence
     # to estimate the probability that a substring is a motif
@@ -29,11 +28,15 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[str, float], eps:
 
     # Generate random PWM values from randomly generated motifs
     pwm = [{x: pwmCounts[i][x]/count for x in pwmCounts[i]} for i in range(k)]
-    pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
 
-    # Placeholder loop until we can properly estimate eps
+    
     rnd = 0
-    while rnd < 10:
+    logLO = 0
+    logL = 0
+    while rnd < 2 or logLO > logL:
+        logLO = logL
+        logL = 0
+        pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
         # E-step
         count = 0
         for i, seq in enumerate(sequences):
@@ -46,6 +49,8 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[str, float], eps:
                 count += currZ
                 # z[i][j] = P(M|substr in i at j) = P(W|M) * lmd
                 z[i][j] = currZ
+                if currZ != 0:
+                    logL += math.log(currZ)
 
         # M-step
         pwm = [{x: pwmCounts[i][x]/count for x in pwmCounts[i]}
@@ -53,3 +58,5 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[str, float], eps:
         mProb = (count / len(sequences)) / avgLen
 
         rnd += 1
+
+    return pwm
