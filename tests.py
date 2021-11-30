@@ -2,6 +2,7 @@
 
 import pnaMotifs as pm
 import random
+from pysam import FastaFile
 
 # Todo: create some simple test data, run tests
 numData = random.randint(10, 40)
@@ -58,3 +59,8 @@ for y in alpha:
     for x in range(k):
         print("%f" % pwm[x][y], end=' ')
     print()
+
+fasta = "shorter.fasta"
+seq_obj = FastaFile(fasta)
+
+print(seq_obj.references)
