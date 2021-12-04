@@ -3,7 +3,7 @@ import random
 import math
 
 
-def motifEMOOPS(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]):
+def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     z = [[0 for x in range(seqLens[y]-k)] for y in range(len(sequences))]
     numM = [0 for x in sequences]
@@ -18,7 +18,6 @@ def motifEMOOPS(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]):
                 # Update count in each position for PWM
                 for x in range(k):
                     pwmCounts[x][seq[j+x]] += 1
-                break
 
     # Get the average sequence length and the average number of randomly assigned 'motifs' per sequence
     # to estimate the probability that a substring is a motif
@@ -29,11 +28,11 @@ def motifEMOOPS(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]):
     # Generate random PWM values from randomly generated motifs
     pwm = [{x: pwmCounts[i][x]/count for x in pwmCounts[i]} for i in range(k)]
 
-    
     rnd = 0
     logLO = 0
     logL = 0
-    while rnd < 2 or logLO > logL:
+    # Loop until log-likelihood is at a local optimum, or at least once
+    while rnd < 1 or logLO > logL:
         logLO = logL
         logL = 0
         pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
@@ -60,3 +59,55 @@ def motifEMOOPS(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]):
         rnd += 1
 
     return pwm
+
+
+def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
+    seqLens = [len(x) for x in sequences]  # The length of each input sequence
+    pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
+    loc = []
+
+    # Randomly generate initial motifs
+    for i, seq in enumerate(sequences):
+        j = random.randint(0, seqLens[i]-k)
+        loc.append(j)
+
+    lastLoc = []
+    while loc != lastLoc:
+        pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
+        lastLoc = loc
+        for i, seq in enumerate(sequences):
+            for j, int_seq in enumerate(sequences):
+                currLoc = loc[j]
+                if j != i:
+                    for x in range(k):
+                        pwmCounts[x][int_seq[currLoc+x]] += 1
+            pwm = [{x: pwmCounts[i][x]/(len(sequences) - 1) for x in pwmCounts[i]} for i in range(k)]
+
+            max = 0
+            maxPos = 0
+            for j in range(seqLens[i] - k):
+                score = 1
+                for x in range(k):
+                    score *= pwm[x][seq[j + x]]
+                if score > max:
+                    max = score
+                    maxPos = j
+            loc[i] = maxPos
+
+    pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
+    
+    for i, seq in enumerate(sequences):
+        currLoc = loc[i]
+        for x in range(k):
+            pwmCounts[x][seq[currLoc+x]] += 1
+    
+    pwm = [{x: pwmCounts[i][x]/len(sequences) for x in pwmCounts[i]} for i in range(k)]
+
+    return pwm
+
+def printMotif(pwm: List[Dict[int, float]], alpha: Dict[int, float], k: int):
+    for y in alpha:
+        print(chr(y), end=" ")
+        for x in range(k):
+            print("%f" % pwm[x][y], end=' ')
+        print()

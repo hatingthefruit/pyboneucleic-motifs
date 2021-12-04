@@ -27,14 +27,14 @@ for x in range(numData):
         currStr[y] = random.choice(alpha)
     dArr.append(currStr)
 
-pwm = pm.motifEMOOPS(dArr, k, {x: .25 for x in alpha})
+pwm1 = pm.motifEM(dArr, k, {x: .25 for x in alpha})
+pwm2 = pm.motifGibbsOOPS(dArr, k, {x: .25 for x in alpha})
 print('--------------')
 
-for y in alpha:
-    print(chr(y), end=" ")
-    for x in range(k):
-        print("%f" % pwm[x][y], end=' ')
-    print()
+print("EM:")
+pm.printMotif(pwm1, alpha, k)
+print("Gibbs:")
+pm.printMotif(pwm2, alpha, k)
 
 dArr=[]
 
@@ -52,15 +52,34 @@ for x in range(numData):
         currStr[y] = random.choice(alpha)
     dArr.append(currStr)
 
-pwm = pm.motifEMOOPS(dArr, k, {x: .25 for x in alpha})
+pwm = pm.motifEM(dArr, k, {x: .25 for x in alpha})
 print('--------------')
-for y in alpha:
-    print(chr(y), end=" ")
-    for x in range(k):
-        print("%f" % pwm[x][y], end=' ')
-    print()
+print("EM:")
+pm.printMotif(pwm, alpha, k)
+
+pwm = pm.motifGibbsOOPS(dArr, k, {x: .25 for x in alpha})
+print("Gibbs:")
+pm.printMotif(pwm, alpha, k)
 
 fasta = "shorter.fasta"
 seq_obj = FastaFile(fasta)
 
-print(seq_obj.references)
+dArr = []
+alpha = b'acgt'
+for ref in seq_obj.references:
+    ba = bytearray(seq_obj.fetch(ref), 'ascii')
+    if len(ba) > k:
+        dArr.append(ba)
+    else:
+        print(ba)
+
+bg = {x: .2475 for x in alpha}
+bg.update({110:.01})
+pwm = pm.motifEM(dArr, k, bg)
+print('--------------')
+print("EM:")
+pm.printMotif(pwm, alpha, k)
+
+pwm = pm.motifGibbsOOPS(dArr, k, bg)
+print("Gibbs:")
+pm.printMotif(pwm, alpha, k)
