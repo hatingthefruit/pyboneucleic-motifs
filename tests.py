@@ -1,5 +1,6 @@
 #!/bin/python
 
+from typing import Counter
 import pnaMotifs as pm
 import random
 from pysam import FastaFile
@@ -66,20 +67,23 @@ seq_obj = FastaFile(fasta)
 
 dArr = []
 alpha = b'acgt'
+bgCount = Counter(alpha)
 for ref in seq_obj.references:
     ba = bytearray(seq_obj.fetch(ref), 'ascii')
+    bgCount.update(ba)
     if len(ba) > k:
         dArr.append(ba)
     else:
         print(ba)
+total = sum([bgCount[x] for x in bgCount])
 
-bg = {x: .2475 for x in alpha}
-bg.update({110:.01})
-pwm = pm.motifEM(dArr, k, bg)
-print('--------------')
-print("EM:")
-pm.printMotif(pwm, alpha, k)
+bg = {x: bgCount[x]/total for x in bgCount}
+for k in range(4, 13):
+    pwm = pm.motifEM(dArr, k, bg)
+    print('--------------')
+    print("EM:")
+    pm.printMotif(pwm, alpha, k)
 
-pwm = pm.motifGibbsOOPS(dArr, k, bg)
-print("Gibbs:")
-pm.printMotif(pwm, alpha, k)
+    pwm = pm.motifGibbsOOPS(dArr, k, bg)
+    print("Gibbs:")
+    pm.printMotif(pwm, alpha, k)
