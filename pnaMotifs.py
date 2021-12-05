@@ -87,10 +87,13 @@ def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]
             maxPos = 0
             for j in range(seqLens[i] - k):
                 score = 1
+                bgScore = 1
                 for x in range(k):
                     score *= pwm[x][seq[j + x]]
-                if score > max:
-                    max = score
+                    bgScore *= bgFreqs[seq[j+x]]
+                ratio = score/bgScore
+                if ratio > max:
+                    max = ratio
                     maxPos = j
             loc[i] = maxPos
 
