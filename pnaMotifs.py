@@ -28,21 +28,26 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> L
     # Generate random PWM values from randomly generated motifs
     pwm = [{x: pwmCounts[i][x]/count for x in pwmCounts[i]} for i in range(k)]
 
-    rnd = 0
-    logLO = 0
+    rnd = 0  # Make sure we have at least one round
+    logLO = 0  # Old logL
     logL = 0
     # Loop until log-likelihood is at a local optimum, or at least once
     while rnd < 1 or logLO > logL:
         logLO = logL
         logL = 0
+
+        # Reset counts
         pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
+
         # E-step
         count = 0
         for i, seq in enumerate(sequences):
             for j in range(seqLens[i]-k):
                 currZ = mProb
+                # Calculate E value for the current location in Z
                 for x, char in enumerate(seq[j:j+k]):
                     currZ *= pwm[x][char]
+                # Update character counts for the current location in Z. Uxe currZ to take a weighted average later
                 for x, char in enumerate(seq[j:j+k]):
                     pwmCounts[x][char] += currZ
                 count += currZ
@@ -64,48 +69,67 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> L
 def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
-    loc = []
+    z = []
 
-    # Randomly generate initial motifs
+    # Randomly generate initial motif locations. The model for this function is OOPS, so we only generate one per sequence
     for i, seq in enumerate(sequences):
         j = random.randint(0, seqLens[i]-k)
-        loc.append(j)
+        z.append(j)
 
-    lastLoc = []
-    while loc != lastLoc:
+    lastZ = []
+
+    # Loop until there is not change in the motif locations
+    while z != lastZ:
+        # Reset pwmCounts
         pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
-        lastLoc = list(loc)
+        lastZ = list(z)
+
+        # Loop through all sequences
         for i, seq in enumerate(sequences):
+            # Update pwmCounts for all sequences except the current on
             for j, int_seq in enumerate(sequences):
-                currLoc = loc[j]
+                currLoc = z[j]
                 if j != i:
                     for x in range(k):
                         pwmCounts[x][int_seq[currLoc+x]] += 1
-            pwm = [{x: pwmCounts[i][x]/(len(sequences) - 1) for x in pwmCounts[i]} for i in range(k)]
 
+            # Use updated counts to update actual PWM
+            pwm = [{x: pwmCounts[i][x]/(len(sequences) - 1)
+                    for x in pwmCounts[i]} for i in range(k)]
+
+            # Find location such that Q_x/P_x (ratio of pattern to background probability) is maximized. Update z[i] to this new location, chosen using viterbi method (always the highest)
             max = 0
             maxPos = 0
             for j in range(seqLens[i] - k):
                 score = 1
                 bgScore = 1
+                # Calculate Q_x and P_x concurrently
                 for x in range(k):
                     score *= pwm[x][seq[j + x]]
                     bgScore *= bgFreqs[seq[j+x]]
+
+                # Compare to maximimum ratio and update if needed
                 ratio = score/bgScore
                 if ratio > max:
                     max = ratio
                     maxPos = j
-            loc[i] = maxPos
+            z[i] = maxPos
 
-        pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
-        
-        for i, seq in enumerate(sequences):
-            currLoc = loc[i]
-            for x in range(k):
-                pwmCounts[x][seq[currLoc+x]] += 1
-        
-        pwm = [{x: pwmCounts[i][x]/len(sequences) for x in pwmCounts[i]} for i in range(k)]
+    # Once loop has terminated calculate PWM one last time
+    # First, reset pwmCounts
+    pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
+
+    # Then update counts at each location
+    for i, seq in enumerate(sequences):
+        currLoc = z[i]
+        for x in range(k):
+            pwmCounts[x][seq[currLoc+x]] += 1
+
+    # Then calculate probabilities for each location
+    pwm = [{x: pwmCounts[i][x]/len(sequences)
+            for x in pwmCounts[i]} for i in range(k)]
     return pwm
+
 
 def printMotif(pwm: List[Dict[int, float]], alpha: Dict[int, float], k: int):
     for y in alpha:
