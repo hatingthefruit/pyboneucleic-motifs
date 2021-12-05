@@ -74,7 +74,7 @@ def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]
     lastLoc = []
     while loc != lastLoc:
         pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
-        lastLoc = loc
+        lastLoc = list(loc)
         for i, seq in enumerate(sequences):
             for j, int_seq in enumerate(sequences):
                 currLoc = loc[j]
@@ -94,15 +94,14 @@ def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]
                     maxPos = j
             loc[i] = maxPos
 
-    pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
-    
-    for i, seq in enumerate(sequences):
-        currLoc = loc[i]
-        for x in range(k):
-            pwmCounts[x][seq[currLoc+x]] += 1
-    
-    pwm = [{x: pwmCounts[i][x]/len(sequences) for x in pwmCounts[i]} for i in range(k)]
-
+        pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
+        
+        for i, seq in enumerate(sequences):
+            currLoc = loc[i]
+            for x in range(k):
+                pwmCounts[x][seq[currLoc+x]] += 1
+        
+        pwm = [{x: pwmCounts[i][x]/len(sequences) for x in pwmCounts[i]} for i in range(k)]
     return pwm
 
 def printMotif(pwm: List[Dict[int, float]], alpha: Dict[int, float], k: int):

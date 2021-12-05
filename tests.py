@@ -5,7 +5,6 @@ import pnaMotifs as pm
 import random
 from pysam import FastaFile
 
-# Todo: create some simple test data, run tests
 numData = random.randint(10, 40)
 minLen = 15
 maxLen = 80
