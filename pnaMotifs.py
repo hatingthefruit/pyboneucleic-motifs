@@ -1,4 +1,4 @@
-from typing import ByteString, Dict, List, Match
+from typing import ByteString, Dict, Iterable, List, Union
 import random
 import math
 
@@ -8,7 +8,8 @@ Expectation Maximization algorithm for motif finding. Given a list of sequences,
 
 For this implementation, we choose an OOPS model (Once Occurence Per String). 
 """
-def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
+
+def motifEM(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     z = [[0 for x in range(seqLens[y]-k)] for y in range(len(sequences))]
     numM = [0 for x in sequences]
@@ -16,7 +17,7 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> L
 
     # Randomly generate initial motifs
     for i, seq in enumerate(sequences):
-        #Randomly pick a motif location
+        # Randomly pick a motif location
         j = random.randint(0, seqLens[i]-k-1)
         numM[i] += 1
         # Update count in each position for PWM
@@ -31,6 +32,12 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> L
 
     # Generate random PWM values from randomly generated motifs
     pwm = [{x: pwmCounts[i][x]/count for x in pwmCounts[i]} for i in range(k)]
+    # To prevent masked characters from interfering with the result, cap the possible probability for 'N' in any position and normalize all other probabilities in that position
+    for x in range(k):
+        if 78 in pwm[x] and pwm[x][78] > 1e-4:
+            pwm[x][78] = 1e-4
+            total = sum([pwm[x][y] for y in pwm[x]])
+            pwm[x] = {y: pwm[x][y]/total for y in pwm[x]}
 
     rnd = 0  # Make sure we have at least one round
     logLO = 0  # Old logL
@@ -53,7 +60,8 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> L
                     currZ *= pwm[x][char]
                 # Update character counts for the current location in Z. Uxe currZ to take a weighted average later
                 for x, char in enumerate(seq[j:j+k]):
-                    pwmCounts[x][char] += currZ
+                    if char != b'N':
+                        pwmCounts[x][char] += currZ
                 count += currZ
                 # z[i][j] = P(M|substr in i at j) = P(W|M) * lmd
                 z[i][j] = currZ
@@ -63,17 +71,25 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> L
         # M-step
         pwm = [{x: pwmCounts[i][x]/count for x in pwmCounts[i]}
                for i in range(k)]
+        # To prevent masked characters from interfering with the result, cap the possible probability for 'N' in any position and normalize all other probabilities in that position
+        for x in range(k):
+            if 78 in pwm[x] and pwm[x][78] > 1e-4:
+                pwm[x][78] = 1e-4
+                total = sum([pwm[x][y] for y in pwm[x]])
+                pwm[x] = {y: pwm[x][y]/total for y in pwm[x]}
         mProb = (count / len(sequences)) / avgLen
 
         rnd += 1
-
     return pwm
+
 
 """
 Gibbs sampling algorithm for motif finding. Given a list of sequences, a motif length, and background character frequencies, it returns a positional weight matrix representating a motif
 
 For this implementation, we choose an OOPS model (Once Occurence Per String). For updating motif locations, we choose a deterministic (viterbi) method, or simply always picking the most likely location given the current model parameters.
 """
+
+
 def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
@@ -104,7 +120,12 @@ def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]
             # Use updated counts to update actual PWM
             pwm = [{x: pwmCounts[i][x]/(len(sequences) - 1)
                     for x in pwmCounts[i]} for i in range(k)]
-
+            # To prevent masked characters from interfering with the result, cap the possible probability for 'N' in any position and normalize all other probabilities in that position
+            for x in range(k):
+                if 78 in pwm[x] and pwm[x][78] > 1e-4:
+                    pwm[x][78] = 1e-4
+                    total = sum([pwm[x][y] for y in pwm[x]])
+                    pwm[x] = {y: pwm[x][y]/total for y in pwm[x]}
             # Find location such that Q_x/P_x (ratio of pattern to background probability) is maximized. Update z[i] to this new location, chosen using viterbi method (always the highest)
             max = 0
             maxPos = 0
@@ -136,13 +157,21 @@ def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]
     # Then calculate probabilities for each location
     pwm = [{x: pwmCounts[i][x]/len(sequences)
             for x in pwmCounts[i]} for i in range(k)]
+    # To prevent masked characters from interfering with the result, cap the possible probability for 'N' in any position and normalize all other probabilities in that position
+    for x in range(k):
+        if 78 in pwm[x] and pwm[x][78] > 1e-4:
+            pwm[x][78] = 1e-4
+            total = sum([pwm[x][y] for y in pwm[x]])
+            pwm[x] = {y: pwm[x][y]/total for y in pwm[x]}
     return pwm
 
 
 """
 Helper function to make it easier to visualize the resulting PWM from the above algorithms
 """
-def printMotif(pwm: List[Dict[int, float]], alpha: Dict[int, float], k: int):
+
+
+def printMotif(pwm: List[Dict[int, float]], alpha: Union[Dict[int, float], Iterable[int]], k: int):
     for y in alpha:
         print(chr(y), end=" ")
         for x in range(k):
