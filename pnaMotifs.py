@@ -139,6 +139,9 @@ def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]
     return pwm
 
 
+"""
+Helper function to make it easier to visualize the resulting PWM from the above algorithms
+"""
 def printMotif(pwm: List[Dict[int, float]], alpha: Dict[int, float], k: int):
     for y in alpha:
         print(chr(y), end=" ")
