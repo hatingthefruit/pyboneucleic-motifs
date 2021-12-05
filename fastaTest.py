@@ -21,7 +21,7 @@ total = sum([bgCount[x] for x in bgCount if x != b'N'])
 bg = {x: bgCount[x]/total for x in bgCount}
 bg.update({78:.001})
 for k in range(4, 13):
-    pwm = pm.motifEM(dArr, k, bg)
+    pwm = pm.motifEMOOPS(dArr, k, bg)
     print('--------------')
     print("EM:")
     pm.printMotif(pwm, alpha, k)

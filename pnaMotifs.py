@@ -9,7 +9,7 @@ Expectation Maximization algorithm for motif finding. Given a list of sequences,
 For this implementation, we choose an OOPS model (Once Occurence Per String). 
 """
 
-def motifEM(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
+def motifEMOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     z = [[0 for x in range(seqLens[y]-k)] for y in range(len(sequences))]
     numM = [0 for x in sequences]

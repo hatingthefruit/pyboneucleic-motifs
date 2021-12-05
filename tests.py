@@ -26,7 +26,7 @@ for x in range(numData):
         currStr[y] = random.choice(alpha)
     dArr.append(currStr)
 
-pwm1 = pm.motifEM(dArr, k, {x: .25 for x in alpha})
+pwm1 = pm.motifEMOOPS(dArr, k, {x: .25 for x in alpha})
 pwm2 = pm.motifGibbsOOPS(dArr, k, {x: .25 for x in alpha})
 print('--------------')
 
@@ -51,7 +51,7 @@ for x in range(numData):
         currStr[y] = random.choice(alpha)
     dArr.append(currStr)
 
-pwm = pm.motifEM(dArr, k, {x: .25 for x in alpha})
+pwm = pm.motifEMOOPS(dArr, k, {x: .25 for x in alpha})
 print('--------------')
 print("EM:")
 pm.printMotif(pwm, alpha, k)
