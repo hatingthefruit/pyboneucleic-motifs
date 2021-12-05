@@ -3,6 +3,11 @@ import random
 import math
 
 
+"""
+Expectation Maximization algorithm for motif finding. Given a list of sequences, a motif length, and background character frequencies, it returns a positional weight matrix representating a motif
+
+For this implementation, we choose an OOPS model (Once Occurence Per String). 
+"""
 def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     z = [[0 for x in range(seqLens[y]-k)] for y in range(len(sequences))]
@@ -11,13 +16,12 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> L
 
     # Randomly generate initial motifs
     for i, seq in enumerate(sequences):
-        for j in range(seqLens[i]-k):
-            # Randomly choose if current subsequence is a motif
-            if bool(random.getrandbits(1)):
-                numM[i] += 1
-                # Update count in each position for PWM
-                for x in range(k):
-                    pwmCounts[x][seq[j+x]] += 1
+        #Randomly pick a motif location
+        j = random.randint(0, seqLens[i]-k-1)
+        numM[i] += 1
+        # Update count in each position for PWM
+        for x in range(k):
+            pwmCounts[x][seq[j+x]] += 1
 
     # Get the average sequence length and the average number of randomly assigned 'motifs' per sequence
     # to estimate the probability that a substring is a motif
@@ -65,7 +69,11 @@ def motifEM(sequences: List[ByteString], k: int, bgFreqs: Dict[int, float]) -> L
 
     return pwm
 
+"""
+Gibbs sampling algorithm for motif finding. Given a list of sequences, a motif length, and background character frequencies, it returns a positional weight matrix representating a motif
 
+For this implementation, we choose an OOPS model (Once Occurence Per String). For updating motif locations, we choose a deterministic (viterbi) method, or simply always picking the most likely location given the current model parameters.
+"""
 def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
