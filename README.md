@@ -30,10 +30,9 @@ python3 fastaTest.py
 There are two main library functions, and they have similar signatures:
 
 ```
-motifEMOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]
+motifEMOOPS(sequences, k, bgFreqs)
 
-motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]
-```
+motifGibbsOOPS(sequences, k, bgFreqs)
 
 ```sequences``` is a list of sequences, which are each a bytearray. Strings can be converted using the ```bytearray(string)``` function. 
 

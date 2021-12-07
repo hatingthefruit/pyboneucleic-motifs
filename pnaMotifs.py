@@ -54,19 +54,15 @@ def motifEMOOPS(sequences, k, bgFreqs):
         for i, seq in enumerate(sequences):
             for j in range(seqLens[i]-k):
                 currZ = mProb
-                currM = 1
-                currQ = 1
                 # Calculate E value for the current location in Z
                 for x, char in enumerate(seq[j:j+k]):
                     currZ *= pwm[x][char]
-                    currM *= pwm[x][char]
-                    currQ *= bgFreqs[char]
                 # Update character counts for the current location in Z. Uxe currZ to take a weighted average later
                 for x, char in enumerate(seq[j:j+k]):
                     pwmCounts[x][char] += currZ
                 count += currZ
                 # z[i][j] = P(M|substr in i at j) = P(W|M) * lmd
-                z[i][j] = currM/currQ
+                z[i][j] = currZ
                 if currZ != 0:
                     logL += math.log(currZ)
 
