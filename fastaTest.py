@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from typing import Counter
+from collections import Counter
 import pnaMotifs as pm
 from pysam import FastaFile
 

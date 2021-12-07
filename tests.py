@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from typing import Counter
+
 import pnaMotifs as pm
 import random
 
