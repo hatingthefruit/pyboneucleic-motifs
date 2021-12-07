@@ -6,23 +6,18 @@ This project requires Python 3; required packages will be covered in 'Getting St
 
 ## Getting started
 
-To get started, you can simply clone this git repository.
-
-To run examples on generated data, run the file ```tests.py```:
-
-```
-python3 tests.py
-```
-
-To run examples on real sequence data, additional dependencies are required that are only available on Unix systems. To install the required dependencies, run:
+To get started, you can simply clone this git repository. To install the required dependencies, run:
 
 ```
 pip3 install -r requirements.txt
 ```
 
-Once the dependencies are installed, run fastaTest.py:
+This step is not necessary if you don't wish to run the algorithms on data in FASTA format
+
+To run the included tests, run any of the test files with Python:
 
 ```
+python3 tests.py
 python3 fastaTest.py
 ```
 
@@ -35,9 +30,9 @@ python3 fastaTest.py
 There are two main library functions, and they have similar signatures:
 
 ```
-motifEMOOPS(sequences, k, bgFreqs)
+motifEMOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]
 
-motifGibbsOOPS(sequences, k, bgFreqs)
+motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]
 ```
 
 ```sequences``` is a list of sequences, which are each a bytearray. Strings can be converted using the ```bytearray(string)``` function. 
