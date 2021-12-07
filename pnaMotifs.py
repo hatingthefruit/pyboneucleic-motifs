@@ -1,4 +1,3 @@
-from typing import ByteString, Dict, Iterable, List, Union
 import random
 import math
 
@@ -9,7 +8,7 @@ Expectation Maximization algorithm for motif finding. Given a list of sequences,
 For this implementation, we choose an OOPS model (Once Occurence Per String). 
 """
 
-def motifEMOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
+def motifEMOOPS(sequences, k, bgFreqs):
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     z = [[0 for x in range(seqLens[y]-k)] for y in range(len(sequences))]
     numM = [0 for x in sequences]
@@ -90,7 +89,7 @@ For this implementation, we choose an OOPS model (Once Occurence Per String). Fo
 """
 
 
-def motifGibbsOOPS(sequences: List[bytearray], k: int, bgFreqs: Dict[int, float]) -> List[Dict[int, float]]:
+def motifGibbsOOPS(sequences, k, bgFreqs):
     seqLens = [len(x) for x in sequences]  # The length of each input sequence
     pwmCounts = [{x: 0 for x in bgFreqs} for y in range(k)]
     z = []
@@ -171,7 +170,7 @@ Helper function to make it easier to visualize the resulting PWM from the above 
 """
 
 
-def printMotif(pwm: List[Dict[int, float]], alpha: Union[Dict[int, float], Iterable[int]], k: int):
+def printMotif(pwm, alpha, k):
     for y in alpha:
         print(chr(y), end=" ")
         for x in range(k):
